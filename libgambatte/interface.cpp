@@ -16,6 +16,12 @@ void gambatte_boot()
     ctx = new Context();
     ctx->video_buffer = (uint8_t*)malloc(VIDEO_BUFFER_SIZE);
     ctx->audio_buffer = (int16_t*)malloc(AUDIO_BUFFER_SIZE);
+    for(unsigned i = 0; i < VIDEO_BUFFER_SIZE; ++i)
+    {
+        unsigned off = i%4;
+        if(off == 3) ctx->video_buffer[i] = 0xFF;
+        else ctx->video_buffer[i] = 0x00;
+    }
     ctx->rom_data = nullptr;
     ctx->rom_size = 0;
     memset(ctx->title, 0, sizeof(ctx->title));
@@ -48,6 +54,21 @@ EMSCRIPTEN_KEEPALIVE
 char* gambatte_get_title()
 {
     return ctx->title;
+}
+
+EMSCRIPTEN_KEEPALIVE
+void gambatte_run_frame()
+{
+    std::size_t samples = AUDIO_BUFFER_LENGTH;
+    std::ptrdiff_t diff = ctx->gb.runFor(
+        (std::uint_least32_t*)ctx->video_buffer, VIDEO_PITCH,
+        (std::uint_least32_t*)ctx->audio_buffer, samples
+    );
+    for(unsigned i = 0; i < VIDEO_BUFFER_SIZE; ++i)
+    {
+        unsigned off = i&3;
+        if(off == 3) ctx->video_buffer[i] = 0xFF;
+    }
 }
 
 EMSCRIPTEN_KEEPALIVE
