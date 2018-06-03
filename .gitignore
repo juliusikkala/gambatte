@@ -12,3 +12,4 @@ libgambatte/*.wasm
 libgambatte/*.js
 libgambatte/*.html
 libgambatte/build
+lib/wasm

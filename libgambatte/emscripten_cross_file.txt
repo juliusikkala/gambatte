@@ -4,10 +4,10 @@ cpp = 'em++'
 ar = 'emar'
 
 [properties]
-c_args = ['-s', 'WASM=1', '-s', 'EXPORTED_FUNCTIONS=[\'_gambatte_boot\']', '-s', 'EXTRA_EXPORTED_RUNTIME_METHODS=\'["cwrap"]\'', '-DHAVE_STDINT_H']
-c_link_args = ['-s', 'WASM=1', '-s', 'EXPORTED_FUNCTIONS=[\'_gambatte_boot\']', '-s', 'EXTRA_EXPORTED_RUNTIME_METHODS=\'["cwrap"]\'', '-DHAVE_STDINT_H']
-cpp_args = ['-s', 'WASM=1', '-s', 'EXPORTED_FUNCTIONS=[\'_gambatte_boot\']', '-s', 'EXTRA_EXPORTED_RUNTIME_METHODS=\'["cwrap"]\'', '-DHAVE_STDINT_H']
-cpp_link_args = ['-s', 'WASM=1', '-s', 'EXPORTED_FUNCTIONS=[\'_gambatte_boot\']', '-s', 'EXTRA_EXPORTED_RUNTIME_METHODS=\'["cwrap"]\'', '-DHAVE_STDINT_H']
+c_args =        ['-s', 'MODULARIZE=1', '-s', 'WASM=1', '-DHAVE_STDINT_H']
+c_link_args =   ['-s', 'MODULARIZE=1', '-s', 'WASM=1', '-DHAVE_STDINT_H']
+cpp_args =      ['-s', 'MODULARIZE=1', '-s', 'WASM=1', '-DHAVE_STDINT_H']
+cpp_link_args = ['-s', 'MODULARIZE=1', '-s', 'WASM=1', '-DHAVE_STDINT_H']
 
 [host_machine]
 system = 'emscripten'

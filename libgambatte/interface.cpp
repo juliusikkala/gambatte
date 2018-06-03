@@ -1,4 +1,5 @@
 #include "gambatte.h"
+#include <emscripten.h>
 #include <cstdio>
 
 using namespace gambatte;
@@ -10,6 +11,7 @@ struct Context
 
 extern "C" {
 
+EMSCRIPTEN_KEEPALIVE
 void gambatte_boot()
 {
     ctx = new Context();
