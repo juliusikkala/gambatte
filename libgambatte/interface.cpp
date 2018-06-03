@@ -57,18 +57,21 @@ char* gambatte_get_title()
 }
 
 EMSCRIPTEN_KEEPALIVE
-void gambatte_run_frame()
+int gambatte_run_frame()
 {
     std::size_t samples = AUDIO_BUFFER_LENGTH;
     std::ptrdiff_t diff = ctx->gb.runFor(
         (std::uint_least32_t*)ctx->video_buffer, VIDEO_PITCH,
         (std::uint_least32_t*)ctx->audio_buffer, samples
     );
-    for(unsigned i = 0; i < VIDEO_BUFFER_SIZE; ++i)
+    for(unsigned i = 0; i < VIDEO_BUFFER_SIZE; i+=4)
     {
-        unsigned off = i&3;
-        if(off == 3) ctx->video_buffer[i] = 0xFF;
+        uint8_t tmp = ctx->video_buffer[i];
+        ctx->video_buffer[i] = ctx->video_buffer[i+2];
+        ctx->video_buffer[i+2] = tmp;
+        ctx->video_buffer[i+3] = 0xFF;
     }
+    return diff;
 }
 
 EMSCRIPTEN_KEEPALIVE
