@@ -4,10 +4,10 @@ cpp = 'em++'
 ar = 'emar'
 
 [properties]
-c_args =        ['-Os', '-s', 'MODULARIZE=1', '-s', 'WASM=1', '-s', 'EXTRA_EXPORTED_RUNTIME_METHODS=\'["cwrap"]\'', '-DHAVE_STDINT_H']
-c_link_args =   ['-Os', '-s', 'MODULARIZE=1', '-s', 'WASM=1', '-s', 'EXTRA_EXPORTED_RUNTIME_METHODS=\'["cwrap"]\'', '-DHAVE_STDINT_H']
-cpp_args =      ['-Os', '-s', 'MODULARIZE=1', '-s', 'WASM=1', '-s', 'EXTRA_EXPORTED_RUNTIME_METHODS=\'["cwrap"]\'', '-DHAVE_STDINT_H']
-cpp_link_args = ['-Os', '-s', 'MODULARIZE=1', '-s', 'WASM=1', '-s', 'EXTRA_EXPORTED_RUNTIME_METHODS=\'["cwrap"]\'', '-DHAVE_STDINT_H']
+c_args =        ['-Os', '-s', 'MODULARIZE=1', '-s', 'WASM=1', '-s', 'EXTRA_EXPORTED_RUNTIME_METHODS=\'["cwrap", "Pointer_stringify"]\'', '-DHAVE_STDINT_H']
+c_link_args =   ['-Os', '-s', 'MODULARIZE=1', '-s', 'WASM=1', '-s', 'EXTRA_EXPORTED_RUNTIME_METHODS=\'["cwrap", "Pointer_stringify"]\'', '-DHAVE_STDINT_H']
+cpp_args =      ['-Os', '-s', 'MODULARIZE=1', '-s', 'WASM=1', '-s', 'EXTRA_EXPORTED_RUNTIME_METHODS=\'["cwrap", "Pointer_stringify"]\'', '-DHAVE_STDINT_H']
+cpp_link_args = ['-Os', '-s', 'MODULARIZE=1', '-s', 'WASM=1', '-s', 'EXTRA_EXPORTED_RUNTIME_METHODS=\'["cwrap", "Pointer_stringify"]\'', '-DHAVE_STDINT_H']
 
 [host_machine]
 system = 'emscripten'
