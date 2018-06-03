@@ -1,3 +1,9 @@
+WebAssembly Gambatte
+====================
+
+This is a port of libgambatte for WebAssembly. Original README below.
+
+```
 --------------------------------------------------------------------------------
 --------------------------------------------------------------------------------
 Copyright (C) 2007 by sinamas <sinamas at users.sourceforge.net>
@@ -124,3 +130,4 @@ The OpenGL Extension Wrangler Library
 Game Boy and Game Boy Color are registered trademarks of
 Nintendo of America Inc.
 Gambatte is not affiliated with or endorsed by any of the companies mentioned.
+```
