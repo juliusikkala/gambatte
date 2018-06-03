@@ -20,7 +20,8 @@ Free Software Foundation, Inc.,
 51 Franklin St, Fifth Floor, Boston, MA  02110-1301, USA.
 ***************************************************************************/
 #include "stdfile.h"
+#include "datafile.h"
 
 transfer_ptr<gambatte::File> gambatte::newFileInstance(std::string const &filepath) {
-	return transfer_ptr<File>(new StdFile(filepath.c_str()));
+	return transfer_ptr<File>(new DataFile(filepath.c_str()));
 }

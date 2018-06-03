@@ -30,6 +30,7 @@ src = [
   'src/video/next_m0_time.cpp',
   'src/video/ppu.cpp',
   'src/video/sprite_mapper.cpp',
+  'src/file/file.cpp',
   'interface.cpp',
 ]
 
