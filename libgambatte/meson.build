@@ -1,6 +1,13 @@
 project('gambatte', 'cpp', default_options : ['buildtype=debugoptimized'])
 
 src = [
+  'common/resample/src/chainresampler.cpp',
+  'common/resample/src/i0.cpp',
+  'common/resample/src/kaiser50sinc.cpp',
+  'common/resample/src/kaiser70sinc.cpp',
+  'common/resample/src/makesinckernel.cpp',
+  'common/resample/src/resamplerinfo.cpp',
+  'common/resample/src/u48div.cpp',
   'src/bitmap_font.cpp',
   'src/cpu.cpp',
   'src/gambatte.cpp',

@@ -4,37 +4,95 @@
 #include <cstdio>
 #include <cstring>
 #include <cmath>
+#define max(a, b) ((a) > (b)?(a):(b))
 
 using namespace gambatte;
 
 struct Context* ctx = nullptr;
 
-#define SAMPLERATE 44100
+#define IN_FRAME_SAMPLES 35112
+#define MAX_IN_FRAME_SAMPLES (IN_FRAME_SAMPLES + 2064)
+#define IN_SAMPLERATE 2097152
 
-const int decimate_size = 43;
+uint8_t* next_frame()
+{
+    return ctx->video_buffers[ctx->video_buffers_write_head];
+}
+
+uint8_t* push_frame()
+{
+    unsigned prev = ctx->video_buffers_write_head;
+    ctx->video_buffers_write_head++;
+
+    if(
+        ctx->video_buffers_write_head ==
+        sizeof(ctx->video_buffers)/sizeof(uint8_t*)
+    ) ctx->video_buffers_write_head = 0;
+
+    return ctx->video_buffers[prev];
+}
+
+uint8_t* pop_frame()
+{
+    if(ctx->video_buffers_read_head == ctx->video_buffers_write_head)
+        return nullptr;
+
+    unsigned prev = ctx->video_buffers_read_head;
+    ctx->video_buffers_read_head++;
+
+    if(
+        ctx->video_buffers_read_head ==
+        sizeof(ctx->video_buffers)/sizeof(uint8_t*)
+    ) ctx->video_buffers_read_head = 0;
+
+    return ctx->video_buffers[prev];
+}
+
+void postprocess_frame(uint8_t* frame)
+{
+    for(unsigned i = 0; i < VIDEO_BUFFER_SIZE; i+=4)
+    {
+        uint8_t tmp = frame[i];
+        frame[i] = frame[i+2];
+        frame[i+2] = tmp;
+        frame[i+3] = 0xFF;
+    }
+}
 
 extern "C" {
 
 EMSCRIPTEN_KEEPALIVE
-void gambatte_boot(int max_audio_size)
+void gambatte_boot(int out_samplerate, int out_max_samples)
 {
     ctx = new Context();
-    ctx->video_buffer = (uint8_t*)malloc(VIDEO_BUFFER_SIZE);
-    ctx->audio_buffer_alloc_size = (35112+2046+decimate_size)*2;
-    ctx->audio_buffer_size = 0;
-    ctx->audio_buffer = (int16_t*)malloc(
-        sizeof(int16_t)*ctx->audio_buffer_alloc_size
-    );
-    max_audio_size *= 2; // Stereo samples
-    ctx->audio_output = (float*)malloc(sizeof(float)*max_audio_size);
-    ctx->audio_size = max_audio_size;
-
-    for(unsigned i = 0; i < VIDEO_BUFFER_SIZE; ++i)
+    for(unsigned i = 0; i < sizeof(ctx->video_buffers)/sizeof(uint8_t*); ++i)
     {
-        unsigned off = i%4;
-        if(off == 3) ctx->video_buffer[i] = 0xFF;
-        else ctx->video_buffer[i] = 0x00;
+        ctx->video_buffers[i] = (uint8_t*)malloc(VIDEO_BUFFER_SIZE);
     }
+    ctx->video_buffers_write_head = 0;
+    ctx->video_buffers_read_head = 0;
+
+    ctx->out_samplerate = out_samplerate;
+
+    ctx->resampler = ResamplerInfo::get(1).create(
+        IN_SAMPLERATE,
+        out_samplerate,
+        MAX_IN_FRAME_SAMPLES
+    );
+
+    ctx->in_size = MAX_IN_FRAME_SAMPLES;
+    ctx->in = (int16_t*)malloc(ctx->in_size*2*sizeof(int16_t));
+
+    ctx->resampled_size =
+        out_max_samples + ctx->resampler->maxOut(MAX_IN_FRAME_SAMPLES);
+    ctx->resampled_head = 0;
+    ctx->resampled = (int16_t*)malloc(ctx->resampled_size*2*sizeof(int16_t));
+
+    ctx->out_size = out_max_samples;
+    ctx->out = (float*)malloc(ctx->out_size*2*sizeof(float));
+
+    memset(ctx->out, 0, ctx->out_size*2*sizeof(float));
+
     ctx->rom_data = nullptr;
     ctx->rom_size = 0;
     memset(ctx->title, 0, sizeof(ctx->title));
@@ -50,17 +108,16 @@ uint8_t* gambatte_allocate_rom(size_t rom_size)
     return ctx->rom_data;
 }
 
-
 EMSCRIPTEN_KEEPALIVE
-uint8_t* gambatte_get_video_buffer()
+uint8_t* gambatte_consume_video_buffer()
 {
-    return ctx->video_buffer;
+    return pop_frame();
 }
 
 EMSCRIPTEN_KEEPALIVE
 float* gambatte_get_audio_buffer()
 {
-    return ctx->audio_output;
+    return ctx->out;
 }
 
 EMSCRIPTEN_KEEPALIVE
@@ -70,79 +127,48 @@ char* gambatte_get_title()
 }
 
 EMSCRIPTEN_KEEPALIVE
-int gambatte_run_for(int audio_size)
+int gambatte_run_for(int required_samples)
 {
-    // Ensure audio buffer can contain the new samples
-    std::size_t desired_frames = audio_size * decimate_size;
-    std::size_t needed_size = (2064 + decimate_size + desired_frames) * 2;
-    if(needed_size > ctx->audio_buffer_alloc_size)
+    int frames = 0;
+    while(ctx->resampled_head < required_samples)
     {
-        ctx->audio_buffer = (int16_t*)realloc(ctx->audio_buffer, needed_size);
-    }
+        uint8_t* video_buffer = next_frame();
 
-    std::size_t received_frames = ctx->audio_buffer_size;
-    bool got_video_frame = false;
-
-    // Get new frames if necessary
-    if(ctx->audio_buffer_size < desired_frames)
-    {
-        // Run the emulator until either enough samples have been generated or a 
-        // frame is outputted.
-        std::size_t tmp_samples = desired_frames - ctx->audio_buffer_size;
-
+        size_t tmp_samples = IN_FRAME_SAMPLES;
         std::ptrdiff_t diff = ctx->gb.runFor(
-            (std::uint_least32_t*)ctx->video_buffer, VIDEO_PITCH,
-            (std::uint_least32_t*)(ctx->audio_buffer + ctx->audio_buffer_size),
-            tmp_samples
+            (std::uint_least32_t*)video_buffer, VIDEO_PITCH,
+            (std::uint_least32_t*)ctx->in, tmp_samples
         );
 
+        std::size_t outlen =
+            ctx->resampler->resample(
+                ctx->resampled + ctx->resampled_head * 2,
+                ctx->in,
+                tmp_samples
+            );
+        ctx->resampled_head += outlen;
+        
         if(diff > 0)
         {
-            got_video_frame = true;
-            // Postprocess video (fix colors & alpha)
-            for(unsigned i = 0; i < VIDEO_BUFFER_SIZE; i+=4)
-            {
-                uint8_t tmp = ctx->video_buffer[i];
-                ctx->video_buffer[i] = ctx->video_buffer[i+2];
-                ctx->video_buffer[i+2] = tmp;
-                ctx->video_buffer[i+3] = 0xFF;
-            }
+            frames++;
+            postprocess_frame(video_buffer);
+            push_frame();
         }
-
-        received_frames += tmp_samples;
     }
 
-    // Compute overrun to be returned on next frame
-    std::size_t used_frames = received_frames;
-    if(received_frames > desired_frames)
-        used_frames = desired_frames;
-
-    std::size_t output_frames = used_frames / decimate_size;
-    used_frames = output_frames * decimate_size;
-
-    for(unsigned i = 0; i < output_frames; ++i)
+    for(unsigned i = 0; i < required_samples*2; ++i)
     {
-        unsigned off = i * decimate_size;
-        int32_t avg_left = 0, avg_right = 0;
-        for(unsigned j = 0; j < decimate_size; ++j)
-        {
-            avg_left += ctx->audio_buffer[((off + j)<<1)];
-            avg_right += ctx->audio_buffer[((off + j)<<1) + 1];
-        }
-        ctx->audio_output[(i<<1)] = (avg_left / decimate_size)/32768.0f;
-        ctx->audio_output[(i<<1) + 1] = (avg_right / decimate_size)/32768.0f;
+        ctx->out[i] = ctx->resampled[i]/32768.0f;
     }
 
-    // Move overrun to the beginning
-    ctx->audio_buffer_size = received_frames - used_frames;
-    memmove(
-        ctx->audio_buffer,
-        ctx->audio_buffer + used_frames * 2,
-        ctx->audio_buffer_size * 2 * sizeof(int16_t)
+    ctx->resampled_head -= required_samples;
+    std::memmove(
+        ctx->resampled,
+        ctx->resampled + required_samples * 2,
+        ctx->resampled_head*2*sizeof(int16_t)
     );
 
-    // Negative value when no new frame, positive for new frames
-    return got_video_frame ? (int)output_frames : -(int)output_frames;
+    return frames;
 }
 
 EMSCRIPTEN_KEEPALIVE
@@ -156,6 +182,12 @@ int gambatte_upload_rom()
 EMSCRIPTEN_KEEPALIVE
 void gambatte_reset()
 {
+    ctx->resampled_head = 0;
+    ctx->video_buffers_write_head = 0;
+    ctx->video_buffers_read_head = 0;
+
+    memset(ctx->out, 0, ctx->out_size*2*sizeof(float));
+
     ctx->gb.reset();
 }
 
