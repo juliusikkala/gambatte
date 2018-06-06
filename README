@@ -1,7 +1,28 @@
-WebAssembly Gambatte
-====================
+# WebAssembly Gambatte
 
-This is a port of libgambatte for WebAssembly. Original README below.
+This is a port of libgambatte for WebAssembly. Original README below. The
+emulator runs completely in the users' browsers; no backend needed.
+
+## Building
+
+For building the WebAssembly part, you need the [Meson build system](http://mesonbuild.com/)
+and [Emscripten](https://github.com/kripken/emscripten).
+Ensure that the [Emscripten binaries are in PATH.](https://kripken.github.io/emscripten-site/docs/getting_started/downloads.html#updating-the-sdk)
+
+```bash
+$ npm install
+$ npm run build
+```
+
+## Testing
+
+After building the WebAssembly part, you can try it out using Storybook.
+
+```bash
+$ npm run storybook
+```
+
+# Gambatte README
 
 ```
 --------------------------------------------------------------------------------

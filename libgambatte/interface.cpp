@@ -59,12 +59,16 @@ void postprocess_frame(uint8_t* frame)
     }
 }
 
+ContextInputGetter inputGetter;
+
 extern "C" {
 
 EMSCRIPTEN_KEEPALIVE
 void gambatte_boot(int out_samplerate, int out_max_samples)
 {
     ctx = new Context();
+    ctx->gb.setInputGetter(&inputGetter);
+
     for(unsigned i = 0; i < sizeof(ctx->video_buffers)/sizeof(uint8_t*); ++i)
     {
         ctx->video_buffers[i] = (uint8_t*)malloc(VIDEO_BUFFER_SIZE);
@@ -96,6 +100,7 @@ void gambatte_boot(int out_samplerate, int out_max_samples)
     ctx->rom_data = nullptr;
     ctx->rom_size = 0;
     memset(ctx->title, 0, sizeof(ctx->title));
+    memset(ctx->buttons, 0, sizeof(ctx->buttons));
 }
 
 EMSCRIPTEN_KEEPALIVE
@@ -124,6 +129,12 @@ EMSCRIPTEN_KEEPALIVE
 char* gambatte_get_title()
 {
     return ctx->title;
+}
+
+EMSCRIPTEN_KEEPALIVE
+uint8_t* gambatte_get_buttons()
+{
+    return ctx->buttons;
 }
 
 EMSCRIPTEN_KEEPALIVE
@@ -187,6 +198,8 @@ void gambatte_reset()
     ctx->video_buffers_read_head = 0;
 
     memset(ctx->out, 0, ctx->out_size*2*sizeof(float));
+    memset(ctx->title, 0, sizeof(ctx->title));
+    memset(ctx->buttons, 0, sizeof(ctx->buttons));
 
     ctx->gb.reset();
 }

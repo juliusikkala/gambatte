@@ -5,15 +5,39 @@ import { action } from '@storybook/addon-actions';
 import { linkTo } from '@storybook/addon-links';
 
 import Gambatte from '../lib/components/gambatte';
+import KeyboardController from '../lib/controllers/keyboard';
+import GamepadController from '../lib/controllers/gamepad';
 
 class GameView extends React.Component {
   constructor(props)
   {
     super(props);
 
+    this.keyboard = new KeyboardController(
+      buttons => this.setState({ keyboardButtons: buttons }),
+      false
+    );
+
+    this.gamepad = new GamepadController(
+      buttons => this.setState({ gamepadButtons: buttons}),
+      false
+    );
+
     this.state = {
-      romData: null
+      romData: null,
+      keyboardButtons: new Set([]),
+      gamepadButtons: new Set([]),
     };
+  }
+
+  componentWillMount() {
+    this.keyboard.attach();
+    this.gamepad.attach();
+  }
+
+  componentWillUnmount() {
+    this.keyboard.detach();
+    this.gamepad.detach();
   }
 
   handleROMSelect(files) {
@@ -27,9 +51,13 @@ class GameView extends React.Component {
   }
 
   render() {
+    const { romData, keyboardButtons, gamepadButtons } = this.state;
     return (
       <div>
-        <Gambatte romData={this.state.romData} />
+        <Gambatte
+          romData={romData}
+          buttons={new Set([...keyboardButtons, ...gamepadButtons])}
+        />
         <input type="file" onChange={e => this.handleROMSelect(e.target.files)} />
       </div>
     );
