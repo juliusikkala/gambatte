@@ -1,7 +1,7 @@
 {
-  "name": "wasmgambatte",
+  "name": "react-gambatte",
   "version": "0.0.1",
-  "description": "WebAssembly port of the Gambatte emulator",
+  "description": "Game Boy emulator for React using Gambatte via WebAssembly",
   "main": "build/index.js",
   "scripts": {
     "build": "libgambatte/build.sh && webpack --mode=production",
@@ -36,23 +36,23 @@
     "babel-preset-es2015": "^6.24.1",
     "babel-preset-es2017": "^6.24.1",
     "babel-runtime": "^6.26.0",
-    "copy-webpack-plugin": "^4.5.1",
     "eslint": "^4.19.1",
+    "eslint-config-airbnb": "^16.1.0",
     "eslint-plugin-import": "^2.12.0",
     "eslint-plugin-jsx-a11y": "^6.0.3",
     "eslint-plugin-react": "^7.8.2",
     "eslint-watch": "^3.1.5",
     "file-loader": "^1.1.11",
     "parcel-bundler": "^1.8.1",
-    "prop-types": "^15.6.1",
-    "react": "^16.4.0",
-    "react-dom": "^16.4.0",
-    "styled-components": "^3.3.0",
     "webpack": "^4.10.2",
     "webpack-cli": "^3.0.1",
     "webpack-node-externals": "^1.7.2"
   },
   "dependencies": {
+    "prop-types": "^15.6.1",
+    "react": "^16.4.0",
+    "react-dom": "^16.4.0",
+    "styled-components": "^3.3.2",
     "wasm-loader": "^1.3.0"
   }
 }

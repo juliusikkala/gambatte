@@ -1,9 +1,8 @@
 const path = require('path');
 const nodeExternals = require('webpack-node-externals');
-const CopyWebpackPlugin = require('copy-webpack-plugin');
 
 module.exports = {
-  node:  {
+  node: {
     fs: 'empty',
   },
   entry: path.resolve(__dirname, 'lib/index.js'),
@@ -11,7 +10,7 @@ module.exports = {
     path: path.resolve(__dirname, './build'),
     filename: 'index.js',
     library: '',
-    libraryTarget: 'commonjs'
+    libraryTarget: 'commonjs',
   },
   externals: [nodeExternals()],
   module: {
@@ -21,29 +20,23 @@ module.exports = {
         exclude: /(node_modules|bower_components)/,
         loader: 'babel-loader',
         options: {
-          presets: ['babel-preset-env', 'babel-preset-react']
-        }
+          presets: ['babel-preset-env', 'babel-preset-react'],
+        },
       },
       {
         test: /\.css$/,
-        use: ['style-loader', 'css-loader']
+        use: ['style-loader', 'css-loader'],
       },
       {
         test: /\.wasm$/,
-        type: "javascript/auto",
+        type: 'javascript/auto',
         use: [
           {
             loader: 'file-loader',
             options: {},
           },
         ],
-      }
+      },
     ],
   },
-  plugins: [
-    new CopyWebpackPlugin([{
-      from: 'lib/wasm/*.wasm',
-      to: 'wasm/[name].wasm',
-    }]),
-  ],
 };

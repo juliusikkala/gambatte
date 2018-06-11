@@ -1,68 +1,67 @@
 import React from 'react';
 
 import { storiesOf } from '@storybook/react';
-import { action } from '@storybook/addon-actions';
-import { linkTo } from '@storybook/addon-links';
 
-import Gambatte from '../lib/components/gambatte';
-import KeyboardController from '../lib/controllers/keyboard';
-import GamepadController from '../lib/controllers/gamepad';
+import { Gambatte, KeyboardController } from '../lib';
 
 class GameView extends React.Component {
-  constructor(props)
-  {
+  constructor(props) {
     super(props);
 
     this.keyboard = new KeyboardController(
       buttons => this.setState({ keyboardButtons: buttons }),
-      false
-    );
-
-    this.gamepad = new GamepadController(
-      buttons => this.setState({ gamepadButtons: buttons}),
-      false
+      false,
     );
 
     this.state = {
       romData: null,
       keyboardButtons: new Set([]),
-      gamepadButtons: new Set([]),
+      error: null,
+      title: 'No game loaded',
     };
   }
 
   componentWillMount() {
     this.keyboard.attach();
-    this.gamepad.attach();
   }
 
   componentWillUnmount() {
     this.keyboard.detach();
-    this.gamepad.detach();
   }
 
   handleROMSelect(files) {
-    let fr = new FileReader();
-    fr.onload = completion => {
+    const fr = new FileReader();
+    fr.onload = (completion) => {
       this.setState({
-        romData: new Uint8Array(completion.target.result)
+        romData: new Uint8Array(completion.target.result),
       });
     };
     fr.readAsArrayBuffer(files[0]);
   }
 
   render() {
-    const { romData, keyboardButtons, gamepadButtons } = this.state;
+    const {
+      romData,
+      keyboardButtons,
+      error,
+      title,
+    } = this.state;
+
     return (
       <div>
+        <p>{title || error}</p>
         <Gambatte
           romData={romData}
-          buttons={new Set([...keyboardButtons, ...gamepadButtons])}
+          buttons={keyboardButtons}
+          onError={e => this.setState({ error: e, title: null })}
+          onTitle={t => this.setState({ error: null, title: t })}
+          width="40rem"
         />
         <input type="file" onChange={e => this.handleROMSelect(e.target.files)} />
       </div>
     );
   }
-};
+}
 
 storiesOf('Gambatte', module)
   .add('Gambatte', () => (<GameView />));

@@ -1,5 +1,4 @@
 const path = require("path");
-const CopyWebpackPlugin = require('copy-webpack-plugin');
 
 module.exports = {
   node:  {
@@ -19,10 +18,4 @@ module.exports = {
       }
     ],
   },
-  plugins: [
-    new CopyWebpackPlugin([{
-      from: '../lib/wasm/*.wasm',
-      to: 'wasm/[name].wasm',
-    }]),
-  ],
 };

@@ -1,7 +1,35 @@
-# WebAssembly Gambatte
+# react-gambatte
 
-This is a port of libgambatte for WebAssembly. Original README below. The
-emulator runs completely in the users' browsers; no backend needed.
+This package is a port of Gambatte for WebAssembly. Original README below.
+The emulator runs completely in the users' browsers; no backend needed. Please
+note that the license is GPLv2 (due to Gambatte), this may limit your usage of
+this library.
+
+## Usage
+
+```bash
+npm install react-gambatte --save
+```
+
+See stories/index.stories.js for an example of usage.
+
+### Props
+
+|     Prop     |                  Description                    | Default |
+|:-------------|:-----------------------------------------------:|--------:|
+| paused       | Whether the emulator should run                 |   false |
+| samplerate   | Audio sample rate                               |   44100 |
+| bufferLength | Length of audio buffer                          |     512 |
+| buttons      | Set of currently pressed buttons                |         |
+| romData      | Uint8Array of binary ROM data                   |         |
+| volume       | Audio volume, between 0.0 and 1.0               |     1.0 |
+| width        | Width of the screen, inserted to CSS            |   160px |
+| onError      | Called when an error has occurred               |         |
+| onTitle      | Called when a game has been successfully loaded |         |
+
+Due to the blitting being driven by the audio callback (yes I know that's
+weird), lowering 'bufferLength' lowers __both__ input lag and audio lag at the
+expense of extra CPU use. Typically, you get buttons from KeyboardController.
 
 ## Building
 
