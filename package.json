@@ -11,7 +11,7 @@
   },
   "repository": {
     "type": "git",
-    "url": "git+https://github.com/juliusikkala/wasmGambatte.git"
+    "url": "git+https://github.com/juliusikkala/react-gambatte.git"
   },
   "keywords": [
     "gambatte",
@@ -22,9 +22,9 @@
   "author": "Julius Ikkala <julius.ikkala@gmail.com>",
   "license": "GPL-3.0",
   "bugs": {
-    "url": "https://github.com/juliusikkala/wasmGambatte/issues"
+    "url": "https://github.com/juliusikkala/react-gambatte/issues"
   },
-  "homepage": "https://github.com/juliusikkala/wasmGambatte#readme",
+  "homepage": "https://github.com/juliusikkala/react-gambatte#readme",
   "devDependencies": {
     "@storybook/addon-actions": "^4.0.0-alpha.8",
     "@storybook/addon-links": "^4.0.0-alpha.8",
